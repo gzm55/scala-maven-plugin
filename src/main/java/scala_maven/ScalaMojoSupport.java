@@ -147,6 +147,15 @@ public abstract class ScalaMojoSupport extends AbstractMojo {
   @Parameter(property = "addScalacArgs")
   private String addScalacArgs;
 
+  /** The -target argument for the Scala compiler. */
+  @Parameter(property = "scala.compiler.target")
+  protected String scalacTarget;
+
+  /** The -release argument for the Scala compiler, supported since scala 2.13. */
+  @Parameter(property = "scala.compiler.release")
+  protected String scalacRelease;
+
+
   /** className (FQN) of the scala tool to provide as */
   @Parameter(
       required = true,
@@ -208,6 +217,10 @@ public abstract class ScalaMojoSupport extends AbstractMojo {
   /** The -target argument for the Java compiler (when using incremental compiler). */
   @Parameter(property = "maven.compiler.target")
   protected String target;
+
+  /** The --release argument for the Java compiler (when using incremental compiler), supported since Java9. */
+  @Parameter(property = "maven.compiler.release")
+  protected String release;
 
   /** The -encoding argument for the Java compiler. (when using incremental compiler). */
   @Parameter(property = "project.build.sourceEncoding", defaultValue = "UTF-8")
@@ -754,6 +767,15 @@ public abstract class ScalaMojoSupport extends AbstractMojo {
       Collections.addAll(options, StringUtils.split(addScalacArgs, "|"));
     }
     options.addAll(getCompilerPluginOptions());
+
+    if (scalacTarget != null && !scalacTarget.isEmpty()) {
+      options.add("-target:" + scalacTarget);
+    }
+    if (scalacRelease != null && !scalacRelease.isEmpty()) {
+      options.add("-release");
+      options.add(scalacRelease);
+    }
+
     return options;
   }
 
@@ -768,13 +790,18 @@ public abstract class ScalaMojoSupport extends AbstractMojo {
     if (javacGenerateDebugSymbols) {
       options.add("-g");
     }
-    if (target != null && !target.isEmpty()) {
-      options.add("-target");
-      options.add(target);
-    }
-    if (source != null && !source.isEmpty()) {
-      options.add("-source");
-      options.add(source);
+    if (release != null && !release.isEmpty()) {
+      options.add("--release");
+      options.add(release);
+    } else {
+      if (target != null && !target.isEmpty()) {
+        options.add("-target");
+        options.add(target);
+      }
+      if (source != null && !source.isEmpty()) {
+        options.add("-source");
+        options.add(source);
+      }
     }
     if (encoding != null) {
       options.add("-encoding");
